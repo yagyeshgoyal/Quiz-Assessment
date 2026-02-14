@@ -1,14 +1,22 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../context/StoreContext'
 import { Shield, LogOut, ArrowLeft } from 'lucide-react'
 
 export default function Header({ title, onBack, rightContent }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { adminToken, adminLogout, professorToken, professorLogout, currentProfessor } = useStore()
 
+  const isHomePage = location.pathname === '/'
+
   const handleLogout = () => {
-    if (adminToken) { adminLogout(); navigate('/admin/login') }
-    else if (professorToken) { professorLogout(); navigate('/') }
+    if (adminToken) {
+      adminLogout()
+      navigate('/admin/login')
+    } else if (professorToken) {
+      professorLogout()
+      navigate('/')
+    }
   }
 
   return (
@@ -35,12 +43,19 @@ export default function Header({ title, onBack, rightContent }) {
         {(adminToken || professorToken) ? (
           <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
             <LogOut size={14} />
-            {adminToken ? 'Admin Logout' : `Logout (${currentProfessor?.name?.split(' ')[0]})`}
+            {adminToken
+              ? 'Admin Logout'
+              : `Logout (${currentProfessor?.name?.split(' ')[0]})`}
           </button>
         ) : (
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/admin/login')}>
-            <Shield size={14} /> Admin
-          </button>
+          isHomePage && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => navigate('/admin/login')}
+            >
+              <Shield size={14} /> Admin
+            </button>
+          )
         )}
       </div>
     </header>
