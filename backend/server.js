@@ -13,15 +13,27 @@ const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
 
+// ✅ TRUST PROXY (IMPORTANT — must be before rate limiter)
+app.set('trust proxy', 1)
+
 // ── Middleware ────────────────────────────────────────────
-// app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'))
 
 // ── Rate Limiting ─────────────────────────────────────────
-const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: 'Too many requests.' })
-const authLimiter   = rateLimit({ windowMs: 15 * 60 * 1000, max: 20,  message: 'Too many login attempts.' })
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: 'Too many requests.'
+})
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many login attempts.'
+})
+
 app.use('/api', globalLimiter)
 app.use('/api/admin/login', authLimiter)
 app.use('/api/professors/login', authLimiter)
@@ -33,7 +45,9 @@ app.use('/api/test', testRoutes)
 app.use('/api/results', resultRoutes)
 
 // ── Health Check ──────────────────────────────────────────
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }))
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'ok', timestamp: new Date() })
+)
 
 // ── Error Handler ─────────────────────────────────────────
 app.use(errorHandler)
